@@ -1,0 +1,70 @@
+app:
+  env :${ENV:dev}
+  topics:
+    file-metadata-updates: file_metadata_updates
+
+
+spring:
+  application:
+    name: file-metadata-service
+
+  cassandra:
+    contact-points: localhost
+    port: 9042
+    keyspace-name: file_metadata_service
+    local-datacenter: datacenter1
+    schema-action: create_if_not_exists
+
+    connection:
+      connect-timeout: 5s
+      init-query-timeout: 5s
+
+    request:
+      timeout: 10s
+      consistency: quorum
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5s
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    admin:
+      auto-create: true
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        linger.ms: 5
+        enable.idempotence: true
+
+    consumer:
+      group-id: file_metadata_service_group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.trusted.packages: "*"
+        max.poll.records: 100
+        session.timeout.ms: 15000
+        heartbeat.interval.ms: 5000
+    listener:
+      missing-topics-fatal: false
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.data.cassandra: INFO
+    org.springframework.kafka: INFO
+  include-application-group:
