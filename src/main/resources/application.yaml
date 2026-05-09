@@ -1,27 +1,35 @@
 app:
-  env :${ENV:dev}
+  env : ${ENV:dev}
   topics:
     file-metadata-updates: file_metadata_updates
+
+management:
+    endpoints:
+        web:
+        exposure:
+            include: health,metrics,prometheus
 
 
 spring:
   application:
     name: file-metadata-service
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/master
+          jwk-set-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
+          audiences: file-metadata-service
+          public-key-location: application.yaml
+
+
   cassandra:
     contact-points: localhost
     port: 9042
     keyspace-name: file_metadata_service
     local-datacenter: datacenter1
-    schema-action: create_if_not_exists
-
-    connection:
-      connect-timeout: 5s
-      init-query-timeout: 5s
-
-    request:
-      timeout: 10s
-      consistency: quorum
+    schema-action : NONE
 
   data:
     redis:
@@ -59,6 +67,9 @@ spring:
         heartbeat.interval.ms: 5000
     listener:
       missing-topics-fatal: false
+  threads:
+    virtual:
+      enabled: true
 
 server:
   port: 8080
