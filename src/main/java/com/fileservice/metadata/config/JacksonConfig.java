@@ -1,12 +1,14 @@
 package com.fileservice.metadata.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class JacksonConfig {
@@ -16,8 +18,16 @@ public class JacksonConfig {
     public ObjectMapper objectMapper() {
         return JsonMapper.builder()
                 .findAndAddModules()
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                // Date/time — now in DateTimeFeature, not SerializationFeature
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
+                // General serialization
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                // Deserialization
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) // default false in Jackson 3 already
+                // Enum — now in EnumFeature
+                .enable(EnumFeature.READ_ENUM_KEYS_USING_INDEX)
                 .build();
     }
 }

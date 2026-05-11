@@ -4,10 +4,10 @@ app:
     file-metadata-updates: file_metadata_updates
 
 management:
-    endpoints:
-        web:
-        exposure:
-            include: health,metrics,prometheus
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
 
 
 spring:
