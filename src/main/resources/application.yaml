@@ -1,5 +1,5 @@
 app:
-  env : ${ENV:dev}
+  env: ${ENV:dev}
   topics:
     file-metadata-updates: file_metadata_updates
 
@@ -9,28 +9,18 @@ management:
       exposure:
         include: health,metrics,prometheus
 
-
 spring:
   application:
     name: file-metadata-service
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/auth/realms/master
-          jwk-set-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
-          audiences: file-metadata-service
-          public-key-location: application.yaml
+  threads:
+    virtual:
+      enabled: true
 
-
-  cassandra:
-    contact-points: localhost
-    port: 9042
-    keyspace-name: file_metadata_service
-    local-datacenter: datacenter1
-    schema-action : NONE
-
+  mongodb:
+    uri: mongodb://localhost:27017/file_metadata_db
+    representation:
+      uuid: standard
   data:
     redis:
       host: localhost
@@ -56,10 +46,8 @@ spring:
       group-id: file_metadata_service_group
       auto-offset-reset: earliest
       enable-auto-commit: false
-
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-
       properties:
         spring.json.trusted.packages: "*"
         max.poll.records: 100
@@ -67,15 +55,10 @@ spring:
         heartbeat.interval.ms: 5000
     listener:
       missing-topics-fatal: false
-  threads:
-    virtual:
-      enabled: true
 
 server:
   port: 8080
 
 logging:
   level:
-    org.springframework.data.cassandra: INFO
     org.springframework.kafka: INFO
-  include-application-group:
