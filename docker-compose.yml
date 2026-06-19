@@ -8,11 +8,13 @@ services:
       SPRING_APPLICATION_NAME: metadata-service
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_CASSANDRA_CONTACT_POINTS: cassandra
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/file_metadata_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
     depends_on:
       - kafka
       - redis
-      - cassandra
+      - postgres
 
   kafka:
     image: bitnami/kafka:3.9
@@ -37,8 +39,12 @@ services:
     ports:
       - "6379:6379"
 
-  cassandra:
-    image: cassandra:5.0
+  postgres:
+    image: postgres:16-alpine
     ports:
-      - "9042:9042"
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: file_metadata_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 

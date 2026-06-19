@@ -8,6 +8,10 @@ management:
     web:
       exposure:
         include: health,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 spring:
   application:
@@ -17,10 +21,19 @@ spring:
     virtual:
       enabled: true
 
-  mongodb:
-    uri: mongodb://localhost:27017/file_metadata_db
-    representation:
-      uuid: standard
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ingetion_layer}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
   data:
     redis:
       host: localhost
