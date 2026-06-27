@@ -7,4 +7,5 @@ public interface ObjectStorageService {
     InputStream downloadFile(String bucketName, String objectName) throws Exception;
     void deleteFile(String bucketName, String objectName) throws Exception;
     String getPresignedUrl(String bucketName, String objectName, int expiryInSeconds) throws Exception;
+    String getPresignedUploadUrl(String bucketName, String objectName, int expiryInSeconds) throws Exception;
 }

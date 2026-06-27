@@ -61,6 +61,19 @@ public class MinioObjectStorageService implements ObjectStorageService {
         );
     }
 
+    @Override
+    public String getPresignedUploadUrl(String bucketName, String objectName, int expiryInSeconds) throws Exception {
+        makeBucketIfNotExist(bucketName);
+        return minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                        .method(Method.PUT)
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .expiry(expiryInSeconds, TimeUnit.SECONDS)
+                        .build()
+        );
+    }
+
     private void makeBucketIfNotExist(String bucketName) throws Exception {
         boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
         if (!found) {
