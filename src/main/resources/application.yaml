@@ -1,5 +1,5 @@
-app:
-  env: ${ENV:dev}
+env:
+  environment: ${ENV:dev}
   topics:
     file-metadata-updates: file_metadata_updates
 
@@ -72,6 +72,9 @@ spring:
 server:
   port: 8080
 
-logging:
-  level:
-    org.springframework.kafka: INFO
+minio:
+  url: http://localhost:9000
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket-name: ${MINIO_BUCKET_NAME:legal_documents}
+

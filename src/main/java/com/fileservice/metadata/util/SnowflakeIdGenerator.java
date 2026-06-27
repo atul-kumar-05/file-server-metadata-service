@@ -1,7 +1,10 @@
 package com.fileservice.metadata.util;
 
 import java.time.Instant;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public final class SnowflakeIdGenerator {
 
     private static final long CUSTOM_EPOCH =
@@ -35,7 +38,9 @@ public final class SnowflakeIdGenerator {
     private long sequence = 0L;
     private long lastTimestamp = -1L;
 
-    public SnowflakeIdGenerator(long workerId, long datacenterId) {
+    public SnowflakeIdGenerator(
+            @Value("${snowflake.worker-id:1}") long workerId,
+            @Value("${snowflake.datacenter-id:1}") long datacenterId) {
 
         if (workerId < 0 || workerId > MAX_WORKER_ID) {
             throw new IllegalArgumentException(

@@ -1,9 +1,6 @@
 package com.fileservice.metadata.entity;
 
-import java.time.LocalDateTime;
-
 import com.fileservice.metadata.util.UploadStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,19 +8,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "document_versions")
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentVersion {
+public class DocumentVersion extends BaseEntity{
 
     @Id
     private Long documentVersionId;
@@ -58,6 +55,4 @@ public class DocumentVersion {
     @Column(name = "uploaded_by")
     private Long uploadedBy;
 
-    @Column(name = "uploaded_at")
-    private LocalDateTime uploadedAt;
 }

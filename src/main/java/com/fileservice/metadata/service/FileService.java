@@ -1,75 +1,91 @@
 package com.fileservice.metadata.service;
 
-import com.fileservice.metadata.dto.request.CreateFileRequest;
-import com.fileservice.metadata.dto.response.FileResponse;
-import com.fileservice.metadata.entity.FileDocument;
-import com.fileservice.metadata.exception.FileNotFoundException;
-import com.fileservice.metadata.kafka.event.FileCreatedEvent;
-import com.fileservice.metadata.kafka.producer.FileEventProducer;
-import com.fileservice.metadata.repository.FileByIdRepository;
-import com.fileservice.metadata.service.redis.CacheService;
-import com.fileservice.metadata.util.DocumentStatus;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.fileservice.metadata.entity.Document;
+import com.fileservice.metadata.entity.DocumentProcessing;
+import com.fileservice.metadata.entity.DocumentVersion;
+import com.fileservice.metadata.repository.DocumentProcessingRepository;
+import com.fileservice.metadata.repository.DocumentVersionRepository;
+import com.fileservice.metadata.storage.objectstore.MinioObjectStorageService;
+import com.fileservice.metadata.storage.objectstore.MinioProperties;
+import com.fileservice.metadata.dto.request.PresignedUrlRequest;
+import com.fileservice.metadata.dto.response.PresignedUrlResponse;
+
 import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+
+import com.fileservice.metadata.util.DocumentStatus;
+import com.fileservice.metadata.util.ProcessignStatus;
+import com.fileservice.metadata.util.UploadStatus;
+import org.springframework.stereotype.Service;
+import com.fileservice.metadata.util.SnowflakeIdGenerator;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
 
-    private final CacheService cacheService;
-    private final FileByIdRepository fileByIdRepository;
-    private final FileEventProducer fileEventProducer;
+    private final DocumentProcessingRepository documentProcessingRepository;
+    private final DocumentVersionRepository documentVersionRepository;
+    private final MinioObjectStorageService minioObjectStorageService;
+    private final SnowflakeIdGenerator snowflakeIdGenerator;
+    private final MinioProperties minioProperties;
 
-    public FileResponse createFile(CreateFileRequest request,UUID userId) {
-        FileDocument entity = FileDocument.builder()
-                .fileId(UUID.randomUUID())
-                .userId(userId)
-                .fileName(request.fileName())
-                .mimeType(request.mimeType())
-                .fileSize(request.fileSize())
-                .status(DocumentStatus.INITIATED)
-                .createdAt(Instant.now())
-                .build();
+    public PresignedUrlResponse getPresignedUrl(PresignedUrlRequest request) {
+        long fileId = snowflakeIdGenerator.nextId();
+        long versionId = snowflakeIdGenerator.nextId();
+        long processingId = snowflakeIdGenerator.nextId();
+        
+        String blobPath = String.format("%s/%s", fileId, request.fileName());
 
-        FileDocument file = fileByIdRepository.save(entity);
-
-        cacheService.set(getKey(file.getFileId()), file);
-
-        FileCreatedEvent event = FileCreatedEvent.builder()
-                .eventId(UUID.randomUUID())
-                .fileId(entity.getFileId())
-                .userId(userId)
-                .createdAt(Instant.now())
-                .build();
-
-        fileEventProducer.publish("create-file",event);
-
-        return FileResponse.builder()
-                .fileId(entity.getFileId())
-                .status(entity.getStatus().name())
-                .build();
-    }
-
-    public FileDocument getFileById(UUID fileId) {
-        FileDocument file = cacheService.get(getKey(fileId), FileDocument.class);
-        if (file != null) {
-            return file;
+        long expiryInSeconds = 3600L; // 1 hour
+        String presignedUrl;
+        try {
+            presignedUrl = minioObjectStorageService.getPresignedUploadUrl(
+                    minioProperties.getBucketName(),
+                    blobPath,
+                    (int) expiryInSeconds
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate presigned upload URL", e);
         }
-        file = fileByIdRepository.findByFileId(fileId)
-                .orElseThrow(() -> new FileNotFoundException("File not found"));
-        cacheService.set(getKey(file.getFileId()), file);
-        return file;
+
+        // 3. Save Document metadata
+        Document document = Document.builder()
+                .id(fileId)
+                .title(request.title())
+                .currentVersion(1)
+                .status(DocumentStatus.INITIATED)
+                .sourceType(request.sourceType())
+                .language(request.language())
+                .build();
+        documentRepository.save(document);
+
+        // 4. Save Document Version metadata
+        DocumentVersion documentVersion = DocumentVersion.builder()
+                .documentVersionId(versionId)
+                .documentId(fileId)
+                .versionNumber(1)
+                .fileName(request.fileName())
+                .originalFileName(request.fileName())
+                .blobPath(blobPath)
+                .mimeType(request.contentType())
+                .uploadStatus(UploadStatus.PENDING)
+                .uploadedAt(Instant.now())
+                .build();
+        documentVersionRepository.save(documentVersion);
+
+        // 5. Save Document Processing metadata
+        DocumentProcessing documentProcessing = DocumentProcessing.builder()
+                .documentProcessingId(snowflakeIdGenerator.nextId())
+                .documentVersionId(versionId)
+                .processingStatus(ProcessignStatus.PENDING)
+                .startedAt(Instant.now())
+                .build();
+        documentProcessingRepository.save(documentProcessing);
+
+        // 6. Return response
+        return new PresignedUrlResponse(fileId, blobPath, expiryInSeconds, presignedUrl);
     }
 
-    public List<FileDocument> findByUserId(UUID userId) {
-        return fileByIdRepository.findByUserId(userId);
-    }
-
-    private String getKey(UUID fileId) {
-        return "file:"+fileId.toString();
-    }
 }
 
