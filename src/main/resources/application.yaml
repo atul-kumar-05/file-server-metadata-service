@@ -3,6 +3,11 @@ env:
   topics:
     file-metadata-updates: file_metadata_updates
 
+azure:
+  storage:
+    connection-string: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;
+    container-name: legal-documents
+
 management:
   endpoints:
     web:
@@ -23,9 +28,10 @@ spring:
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ingetion_layer}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: ${DB_USER:admin}
+    password: ${DB_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -34,6 +40,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        jdbc:
+          time_zone: UTC
+        connection:
+          isolation: 2
+    open-in-view: false
   data:
     redis:
       host: localhost
@@ -71,10 +82,4 @@ spring:
 
 server:
   port: 8080
-
-minio:
-  url: http://localhost:9000
-  access-key: ${MINIO_ACCESS_KEY:minioadmin}
-  secret-key: ${MINIO_SECRET_KEY:minioadmin}
-  bucket-name: ${MINIO_BUCKET_NAME:legal_documents}
 

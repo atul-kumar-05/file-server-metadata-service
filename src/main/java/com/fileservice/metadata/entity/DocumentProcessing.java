@@ -1,9 +1,7 @@
 package com.fileservice.metadata.entity;
 
-import java.time.LocalDateTime;
-
+import java.time.Instant;
 import com.fileservice.metadata.util.ProcessignStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -60,8 +58,8 @@ public class DocumentProcessing {
     private Integer retryCount;
 
     @Column(name = "started_at")
-    private LocalDateTime startedAt;
+    private Instant startedAt;
 
     @Column(name = "completed_at")
-    private LocalDateTime completedAt;
+    private Instant completedAt;
 }
