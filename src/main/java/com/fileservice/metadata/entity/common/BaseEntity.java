@@ -1,4 +1,4 @@
-package com.fileservice.metadata.entity;
+package com.fileservice.metadata.entity.common;
 
 import java.time.Instant;
 

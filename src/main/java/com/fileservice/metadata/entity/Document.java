@@ -1,5 +1,6 @@
 package com.fileservice.metadata.entity;
 
+import com.fileservice.metadata.entity.common.BaseEntity;
 import com.fileservice.metadata.util.DocumentStatus;
 
 import jakarta.persistence.Column;

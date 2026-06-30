@@ -3,13 +3,13 @@ package com.fileservice.metadata.dto.request;
 import jakarta.validation.constraints.NotBlank;
 
 public record PresignedUrlRequest(
-        @NotBlank
+        @NotBlank(message = "title should not be blank")
         String title,
 
-        @NotBlank
+        @NotBlank(message = "file name must not ")
         String fileName,
 
-        @NotBlank
+        @NotBlank(message = "not blank")
         String contentType,
 
         String language,

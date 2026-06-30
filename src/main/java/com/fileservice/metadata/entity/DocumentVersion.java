@@ -1,5 +1,6 @@
 package com.fileservice.metadata.entity;
 
+import com.fileservice.metadata.entity.common.BaseEntity;
 import com.fileservice.metadata.util.UploadStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentVersion extends BaseEntity{
+public class DocumentVersion extends BaseEntity {
 
     @Id
     private Long documentVersionId;
